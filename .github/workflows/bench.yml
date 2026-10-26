@@ -1,0 +1,75 @@
+name: bench
+on: [pull_request, workflow_dispatch]
+
+jobs:
+  rust-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Machine
+        run: echo "cpus=$(nproc) mem=$(free -g | awk '/Mem/{print $2}')G"
+      - name: Build ripgrep (release)
+        run: |
+          git clone -q --depth 1 --branch 14.1.1 https://github.com/BurntSushi/ripgrep.git /tmp/rg
+          cd /tmp/rg
+          start=$(date +%s)
+          cargo build --release -q
+          echo "BUILD_SECONDS=$(( $(date +%s) - start ))"
+          ./target/release/rg --version
+
+  node-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: |
+          npm init -y >/dev/null
+          npm install --silent typescript@5
+          npx tsc --version
+          node -e "console.log('node', process.version)"
+
+  services:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: pw
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 30
+    steps:
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client >/dev/null
+      - run: PGPASSWORD=pw psql -h localhost -U postgres -tAc "select version()"
+
+  cache-artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/bench
+          key: bench-${{ github.run_id }}
+      - run: mkdir -p ~/.cache/bench out && date > ~/.cache/bench/stamp && head -c 5000000 /dev/urandom > out/blob.bin
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blob
+          path: out/blob.bin
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          printf 'FROM alpine:3.20\nRUN echo built-in-docker > /msg\nCMD cat /msg\n' > Dockerfile
+          docker build -q -t bench-img .
+          docker run --rm bench-img
