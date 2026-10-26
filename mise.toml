@@ -43,3 +43,7 @@ host="${GITHUB_SERVER_URL#https://}"
 if [ "$host" != "github.com" ]; then export GH_HOST="$host"; fi
 GHCHECK_READONLY=1 scripts/ghcheck.sh "$host/$GITHUB_REPOSITORY" | tee results/latest/ghcheck.md
 """
+
+[tasks."twin:collect"]
+description = "Download both twins' latest check results and compare them side by side (needs gh and DIFFINERY_TOKEN)"
+run = "scripts/twin-collect.sh"
