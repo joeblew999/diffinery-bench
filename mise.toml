@@ -1,0 +1,19 @@
+# Pinned tools and tasks for this repo. `mise install`, then `mise tasks` lists what you can run.
+[tools]
+node = "22"
+
+[tasks.apidiff]
+description = "Ask GitHub and Diffinery the same API questions and list the differences (needs DIFFINERY_TOKEN)"
+run = "node scripts/apidiff.mjs all"
+
+[tasks."apidiff:github"]
+description = "Fetch only GitHub's answers"
+run = "node scripts/apidiff.mjs fetch github"
+
+[tasks."apidiff:diffinery"]
+description = "Fetch only Diffinery's answers (needs DIFFINERY_TOKEN)"
+run = "node scripts/apidiff.mjs fetch diffinery"
+
+[tasks."apidiff:compare"]
+description = "Compare the saved answers in results/latest"
+run = "node scripts/apidiff.mjs compare"
