@@ -11,6 +11,14 @@ It checks three things.
 2. **API compatibility:** `scripts/apidiff.mjs` asks both sides the same REST questions (28 endpoints) and lists where Diffinery's answers differ in the fields GitHub clients rely on.
 3. **`gh` compatibility:** `scripts/ghcheck.sh` runs the same `gh` commands, reads and writes, against either side. A command counts as working only if its output shows the expected item.
 
+## The twins test themselves
+
+`.github/workflows/check.yml` runs on every push to `main`, on GitHub Actions **and** on Diffinery: it installs mise and runs `mise run check:self`, which checks the platform it runs on against itself with the job's own token, and uploads the results. So one merge gives two result sets:
+
+1. merge on GitHub: GitHub runs `check`
+2. `mise run twin:sync`: the twin gets the same commit, so Diffinery runs `check`
+3. `mise run twin:collect`: download both and compare them side by side
+
 ## Run it
 
 Tools are pinned in `mise.toml`; `mise install`, then `mise tasks` lists the tasks. The Diffinery side needs a token from a Diffinery login (choose **write** on the authorize page; **admin** only if a branch is protected):
@@ -28,4 +36,4 @@ The GitHub side of the `gh` check (`mise run ghcheck:github`) needs a normal `gh
 
 ## Results
 
-One dated doc per run in `docs/`, newest last. Latest: [docs/2026-10-26-02-full-check.md](docs/2026-10-26-02-full-check.md).
+One dated doc per run in `docs/`, newest last. Latest: [docs/2026-10-26-03-twin-ci.md](docs/2026-10-26-03-twin-ci.md).
