@@ -1,0 +1,37 @@
+name: check
+# Each twin tests its own platform with the same mise task (GitHub Actions and Diffinery alike).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+  actions: read
+  checks: read
+  statuses: read
+
+jobs:
+  self-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v5
+      - name: Test this platform against itself
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
+          GH_ENTERPRISE_TOKEN: ${{ github.token }}
+        run: mise run check:self
+      - name: Summary
+        if: always()
+        run: |
+          echo "Server: $GITHUB_SERVER_URL" >> "$GITHUB_STEP_SUMMARY"
+          cat results/latest/ghcheck.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: check-results
+          path: results/latest/

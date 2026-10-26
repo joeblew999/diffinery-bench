@@ -34,3 +34,12 @@ run = "scripts/ghcheck.sh github.com/${GH_REPO:-joeblew999/diffinery-bench}"
 description = "Full check: sync the twin, then compare APIs and run the gh checks against Diffinery"
 depends = ["twin:sync"]
 run = ["node scripts/apidiff.mjs all", "scripts/ghcheck.sh ${DIFFINERY_HOST:-diffinery.ubuntusoftware.net}/${DIFFINERY_REPO:-gedw99/diffinery-bench}"]
+
+[tasks."check:self"]
+description = "Inside CI on either platform: test this platform against itself (API answers + read-only gh checks) into results/latest"
+run = """
+node scripts/apidiff.mjs fetch self
+host="${GITHUB_SERVER_URL#https://}"
+if [ "$host" != "github.com" ]; then export GH_HOST="$host"; fi
+GHCHECK_READONLY=1 scripts/ghcheck.sh "$host/$GITHUB_REPOSITORY" | tee results/latest/ghcheck.md
+"""
