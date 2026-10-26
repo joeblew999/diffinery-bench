@@ -28,6 +28,15 @@ const sides = {
     issue: Number(env.DIFFINERY_ISSUE || 2),
     token: env.DIFFINERY_TOKEN || "",
   },
+  // "self": the platform this is running on, inside its own CI (GitHub Actions or Diffinery),
+  // using the job's own API URL, repository and token.
+  self: {
+    base: (env.GITHUB_API_URL || "").replace(/\/$/, ""),
+    repo: env.GITHUB_REPOSITORY || "",
+    pr: Number(env.CHECK_PR || 3),
+    issue: Number(env.CHECK_ISSUE || 2),
+    token: env.GITHUB_TOKEN || "",
+  },
 };
 const outDir = new URL("../results/latest/", import.meta.url).pathname;
 
@@ -52,6 +61,7 @@ function get(side, path) {
 function fetchSide(side) {
   const { repo, pr, issue } = sides[side];
   if (side === "diffinery" && !sides.diffinery.token) throw new Error("set DIFFINERY_TOKEN (diffinery login --scope read)");
+  if (side === "self" && !(sides.self.base && sides.self.repo)) throw new Error("self needs GITHUB_API_URL and GITHUB_REPOSITORY (set by CI)");
   const out = {};
   const q = (name, path) => { out[name] = get(side, path); };
   q("repo", `/repos/${repo}`);
@@ -106,8 +116,8 @@ function shape(v, p, acc) {
 const IMPORTANT = /(^|\.)(id|node_id|number|state|title|body|html_url|url|name|status|conclusion|head|base|sha|ref|user|login|labels|pull_request|created_at|updated_at|closed_at|workflow_runs|workflow_id|jobs|steps|check_runs|total_count|started_at|completed_at|run_id|run_attempt|head_sha|head_branch|event|merged|draft|mergeable|full_name|private|default_branch|owner|comments|assignees|milestone|state_reason|statuses|context|target_url)$/;
 
 function compare() {
-  const g = JSON.parse(readFileSync(`${outDir}api-github.json`, "utf8"));
-  const d = JSON.parse(readFileSync(`${outDir}api-diffinery.json`, "utf8"));
+  const g = JSON.parse(readFileSync(side || `${outDir}api-github.json`, "utf8"));
+  const d = JSON.parse(readFileSync(other || `${outDir}api-diffinery.json`, "utf8"));
   let problems = 0;
   for (const name of Object.keys(g)) {
     const gs = g[name];
@@ -133,7 +143,8 @@ function compare() {
   console.log(`\nTotal differences in client-relevant fields: ${problems}`);
 }
 
-const [cmd, side] = process.argv.slice(2);
+// compare A B: compare any two saved answer files (default: github vs diffinery).
+const [cmd, side, other] = process.argv.slice(2);
 if (cmd === "fetch") fetchSide(side);
 else if (cmd === "compare") compare();
 else if (cmd === "all") { fetchSide("github"); fetchSide("diffinery"); compare(); }
