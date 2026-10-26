@@ -17,3 +17,20 @@ run = "node scripts/apidiff.mjs fetch diffinery"
 [tasks."apidiff:compare"]
 description = "Compare the saved answers in results/latest"
 run = "node scripts/apidiff.mjs compare"
+
+[tasks."twin:sync"]
+description = "Make the Diffinery twin identical to this GitHub repo; GitHub wins (needs DIFFINERY_TOKEN)"
+run = "scripts/sync-twin.sh"
+
+[tasks."ghcheck:diffinery"]
+description = "Run the gh command checks (reads and writes) against the Diffinery twin"
+run = "scripts/ghcheck.sh ${DIFFINERY_HOST:-diffinery.ubuntusoftware.net}/${DIFFINERY_REPO:-gedw99/diffinery-bench}"
+
+[tasks."ghcheck:github"]
+description = "Run the same gh checks against this GitHub repo (from a normal gh login; Claude sessions block GitHub GraphQL)"
+run = "scripts/ghcheck.sh github.com/${GH_REPO:-joeblew999/diffinery-bench}"
+
+[tasks.check]
+description = "Full check: sync the twin, then compare APIs and run the gh checks against Diffinery"
+depends = ["twin:sync"]
+run = ["node scripts/apidiff.mjs all", "scripts/ghcheck.sh ${DIFFINERY_HOST:-diffinery.ubuntusoftware.net}/${DIFFINERY_REPO:-gedw99/diffinery-bench}"]

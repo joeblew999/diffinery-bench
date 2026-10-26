@@ -17,13 +17,13 @@ const sides = {
   github: {
     base: "https://api.github.com",
     repo: env.GH_REPO || "joeblew999/diffinery-bench",
-    pr: Number(env.GH_PR || 1),
+    pr: Number(env.GH_PR || 3),
     issue: Number(env.GH_ISSUE || 2),
     token: env.GITHUB_TOKEN || "",
   },
   diffinery: {
     base: `${(env.DIFFINERY_URL || "https://diffinery.ubuntusoftware.net").replace(/\/$/, "")}/api/v3`,
-    repo: env.DIFFINERY_REPO || "gedw99/claude-trial",
+    repo: env.DIFFINERY_REPO || "gedw99/diffinery-bench",
     pr: Number(env.DIFFINERY_PR || 3),
     issue: Number(env.DIFFINERY_ISSUE || 2),
     token: env.DIFFINERY_TOKEN || "",
@@ -68,6 +68,27 @@ function fetchSide(side) {
     q("check_runs", `/repos/${repo}/commits/${sha}/check-runs`);
     q("status", `/repos/${repo}/commits/${sha}/status`);
   }
+  if (run) {
+    q("run", `/repos/${repo}/actions/runs/${run.id}`);
+    q("run_logs_redirect", `/repos/${repo}/actions/runs/${run.id}/logs`);
+  }
+  q("workflows", `/repos/${repo}/actions/workflows`);
+  q("branches", `/repos/${repo}/branches`);
+  q("branch_main", `/repos/${repo}/branches/main`);
+  q("commits", `/repos/${repo}/commits?sha=main&per_page=5`);
+  q("commit_main", `/repos/${repo}/commits/main`);
+  q("contents_root", `/repos/${repo}/contents/`);
+  q("contents_readme", `/repos/${repo}/contents/README.md`);
+  q("readme", `/repos/${repo}/readme`);
+  q("compare", `/repos/${repo}/compare/main~1...main`);
+  q("labels", `/repos/${repo}/labels`);
+  q("releases", `/repos/${repo}/releases`);
+  q("tags", `/repos/${repo}/tags`);
+  q("issue_comments", `/repos/${repo}/issues/${issue}/comments`);
+  q("pull_files", `/repos/${repo}/pulls/${pr}/files`);
+  q("pull_commits", `/repos/${repo}/pulls/${pr}/commits`);
+  q("pull_reviews", `/repos/${repo}/pulls/${pr}/reviews`);
+  q("user", `/user`);
   mkdirSync(outDir, { recursive: true });
   writeFileSync(`${outDir}api-${side}.json`, JSON.stringify(out, null, 1));
   console.log(`${side}:`, Object.entries(out).map(([k, v]) => `${k}=${v.status}`).join(" "));
