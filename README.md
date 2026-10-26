@@ -34,6 +34,14 @@ Point it at other repos with `GH_REPO`, `GH_PR`, `DIFFINERY_URL`, `DIFFINERY_HOS
 
 The GitHub side of the `gh` check (`mise run ghcheck:github`) needs a normal `gh` login, such as on a Mac: Claude cloud sessions block GitHub's GraphQL API, which most `gh` commands use.
 
+## Set up and tear down Diffinery
+
+The Diffinery side runs on your own Cloudflare account. `mise run diffinery:up` deploys it, including the DNS record, Email Sending, Turnstile and the Access team domain that Diffinery's own `setup.sh` leaves to you. It's safe to run again. `mise run diffinery:down` lists everything Diffinery created; `mise run diffinery:down -- --yes` deletes it all, repos and data included.
+
+Both need `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` and `DIFFINERY_DOMAIN`, and `up` also needs `BOOTSTRAP_ADMINS` (your email) and Docker. Make the token in the Cloudflare dashboard with the permissions in [Diffinery's deploy guide](https://github.com/codician-team/diffinery), plus **DNS Edit**, **Email Sending Edit** and **Access: Organizations Read**. `up` deploys the Diffinery commit this kit was tested with; set `DIFFINERY_REF` for another.
+
+After `up`, sign in at `https://$DIFFINERY_DOMAIN/auth/access`, add a passkey, import this repo as the twin, and run `mise run twin:sync`.
+
 ## Results
 
 One dated doc per run in `docs/`, newest last. Latest: [docs/2026-10-26-03-twin-ci.md](docs/2026-10-26-03-twin-ci.md).
