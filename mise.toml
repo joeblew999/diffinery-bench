@@ -1,6 +1,8 @@
 # Pinned tools and tasks for this repo. `mise install`, then `mise tasks` lists what you can run.
 [tools]
 node = "22"
+pnpm = "10"
+jq = "1.7"
 
 [tasks.apidiff]
 description = "Ask GitHub and Diffinery the same API questions and list the differences (needs DIFFINERY_TOKEN)"
@@ -47,3 +49,11 @@ GHCHECK_READONLY=1 scripts/ghcheck.sh "$host/$GITHUB_REPOSITORY" | tee results/l
 [tasks."twin:collect"]
 description = "Download both twins' latest check results and compare them side by side (needs gh and DIFFINERY_TOKEN)"
 run = "scripts/twin-collect.sh"
+
+[tasks."diffinery:up"]
+description = "Deploy Diffinery to Cloudflare, including DNS, Email Sending, Turnstile and Access (needs CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, DIFFINERY_DOMAIN, BOOTSTRAP_ADMINS, Docker)"
+run = "scripts/diffinery-up.sh"
+
+[tasks."diffinery:down"]
+description = "List everything Diffinery created on Cloudflare; pass --yes to delete it all"
+run = "scripts/diffinery-down.sh"
